@@ -29,6 +29,7 @@ lets write shell script:
 so now you don't have raw password in you shell script, while this encrypted password
 can be decrypted only when you ssh key been added in your ssh-agent before
 
+
 #How it works
 
 When you encrypt your password it generates random bytes, which signed by you ssh key
