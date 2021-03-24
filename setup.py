@@ -18,7 +18,9 @@ setup(
     author='Maxim Nikitenko',
     author_email='iam@sets88.com',
     packages=find_packages(),
-    description='ssh-crypt is a tool to encrypt/decrypt data using your ssh key from ssh-agent',
+    description='ssh-crypt is a tool to encrypt/decrypt data using your ssh key from ssh-agent',\
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     include_package_data=True,
     zip_safe=False,
     platforms='any',
