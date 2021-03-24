@@ -46,9 +46,11 @@ creates sha3_256 from it and uses it as a AES key to decrypt the rest of data
 # Options
 
 -h, --help
+
 Prints brief usage information.
 
 -e, --encrypt
+
 Encrypt incomming data
 
 Examples:
