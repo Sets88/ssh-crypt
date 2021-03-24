@@ -1,4 +1,4 @@
-# Why may need it
+# Why you may need it
 
 Sometimes you want to store your password into your shell scripts
 but it's not very safe to keep raw passwords in it
