@@ -2,8 +2,10 @@
 
 Sometimes you want to store your password into your shell scripts
 but it's not very safe to keep raw passwords in it
-so this module can help you to solve this problem by keeping your passwords encrypted,
-the idea is you have your ssh key which protected with master password
+
+This module can help you to solve this problem by keeping your passwords encrypted.
+
+The idea is you have your ssh key which protected with master password
 and there is an ssh-agent which contains your ssh key, so you can use it as
 encryption key, until you have your key in ssh-agent you can decrypt your passwords
 in your shell scripts, while if ssh key is in not in your ssh-agent you(or somebody else) can't
