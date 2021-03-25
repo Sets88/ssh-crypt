@@ -35,8 +35,12 @@ When you encrypt your password it generates random bytes, which signed by you ss
 from your ssh-agent, then it creates sha3_256 from this signature and uses it as a key
 to encrypt your data with AES and creating base85 of it if binary mode is not enabled
 
+![How encryption works](/data/encryption.png)
+
 When you decrypt your password it takes random bytes until ":" sign, signs it with your ssh key,
 creates sha3_256 from it and uses it as a AES key to decrypt the rest of data
+
+![How decryption works](/data/decryption.png)
 
 # How to install it
 
