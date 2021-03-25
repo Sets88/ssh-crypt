@@ -6,21 +6,21 @@ but it's not very safe to keep raw passwords in it
 This module can help you to solve this problem by keeping your passwords encrypted.
 
 The idea is you have your ssh key which protected with master password
-and there is an ssh-agent which contains your ssh key, so you can use it as
+and there is an ssh-agent which can keep your ssh key, so you can use it as
 encryption key, until you have your key in ssh-agent you can decrypt your passwords
 in your shell scripts, while if ssh key is in not in your ssh-agent you(or somebody else) can't
-use it to encrype/decrypt passwords or other sensitive data, here how you can use it:
-We add your ssh key into ssh-agent:
+use it to encrypt/decrypt passwords or other sensitive data, here how you can use it:
+You add your ssh key into ssh-agent:
 
     /usr/bin/ssh-add -t 1d -k ~/.ssh/id_rsa
 
-We enter master password and now we have ssh key in our ssh-agent,
-Now we can use it to encrypt passwords or other sensitive data:
+You enter master password and now you have ssh key in your ssh-agent,
+Now you can use it to encrypt passwords or other sensitive data:
 
     ssh-crypt -e -s 'testpassword'
 
-we get string which contains your encrypted password, copy it, we can use it further,
-lets write shell script:
+You get string which contains your encrypted password, copy it, you can use it further,
+lets write a shell script:
 
     !/bin/bash
 
@@ -28,11 +28,11 @@ lets write shell script:
 
     mysql -h localhost -u testuser -p$(ssh-crypt -d -s $PASS)
 
-so now you don't have raw password in you shell script, while this encrypted password
-can be decrypted only when you ssh key been added in your ssh-agent before
+so now you don't have raw password in you shell script anymore, while this encrypted password
+can be decrypted only if your ssh key still in your ssh-agent
 
 
-Also you can use it just to encrypt/decrypt files like:
+Also you can use it just to encrypt/decrypt files like here:
 
     ssh-crypt -e -i /tmp/rawfile -o /tmp/encrypted_file
     ssh-crypt -d -i /tmp/encrypted_file -o /tmp/rawfile
@@ -46,7 +46,7 @@ to encrypt your data with AES and creating base85 of it if binary mode is not en
 
 ![How encryption works](/data/encryption.png)
 
-When you decrypt your password it takes random bytes until ":" sign, signs it with your ssh key,
+When you decrypt your password it takes nonce bytes from the string you pass, signs it with your ssh key,
 creates sha3_256 from it and uses it as a AES key to decrypt the rest of data
 
 ![How decryption works](/data/decryption.png)
