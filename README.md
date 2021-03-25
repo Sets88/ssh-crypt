@@ -115,7 +115,7 @@ Examples:
 
 -b, --binary
 
-Encrypt or decrypt binary data
+Not use base85(used to make encrypted data look more like text file, to allow to copy it into shell scripts) for payload
 
 Examples:
 
