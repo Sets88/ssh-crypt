@@ -55,6 +55,13 @@ creates sha3_256 from it and uses it as a AES key to decrypt the rest of data
 
     pip install ssh-crypt
 
+# How to use it in python scripts
+
+```python
+from ssh_crypt import E
+
+super_secret_password = str(E('{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5'))
+```
 
 # Options
 

@@ -186,6 +186,22 @@ class Processor():
         self.output.write(self.processor.send(b''))
 
 
+class E():
+    def __init__(self, data: Union[str, bytes], binary=False):
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        self.data = data
+
+    def __bytes__(self) -> bytes:
+        ssh_key = get_first_key()
+
+        decryptor = Decryptor(ssh_key, binary=False)
+        return decryptor.send(self.data) + decryptor.send(b'')
+
+    def __str__(self) -> str:
+        return self.__bytes__().decode('utf-8')
+
+
 def main() -> None:
     ssh_key = get_first_key()
     if not ssh_key:
