@@ -2,6 +2,8 @@ import sys
 import random
 import base64
 import argparse
+import binascii
+
 from io import BytesIO
 from typing import Union
 from typing import Optional
@@ -16,15 +18,44 @@ from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.backends import default_backend
 from paramiko import Agent
 from paramiko import AgentKey
-
+from paramiko.ssh_exception import SSHException
+from paramiko.agent import cSSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER
 
 NONCE_LENGTH = 64
+VALID_SSH_NAME = ["ssh-rsa"]
+
+
+def get_keys():
+    agent = Agent()
+    ptype, result = agent._send_message(cSSH2_AGENTC_REQUEST_IDENTITIES)
+    if ptype != SSH2_AGENT_IDENTITIES_ANSWER:
+        raise SSHException("could not get keys from ssh-agent")
+    keys = []
+    for i in range(result.get_int()):
+        key_blob = result.get_binary()
+        key_comment = result.get_string()
+        keys.append((AgentKey(agent, key_blob), key_comment))
+    return keys
 
 
 def get_first_key():
-    keys = Agent().get_keys()
+    # Only RSA based key have capability to get the same sign data from same nonce
+    keys = get_keys()
+    keys = [key for key in keys if key[0].name in VALID_SSH_NAME]
     if keys:
-        return keys[0]
+        return keys[0][0]
+
+
+def find_filter_key(ssh_filter):
+    ssh_filter = ssh_filter.encode()
+    filter_keys = []
+    for key in [key for key in get_keys() if key[0].name in VALID_SSH_NAME]:
+        if ssh_filter in key[1]:
+            filter_keys.append(key)
+        elif ssh_filter in binascii.hexlify(key[0].get_fingerprint(), sep=":"):
+            filter_keys.append(key)
+    if filter_keys:
+        return filter_keys[0][0]
 
 
 class EncryptingCipher():
@@ -92,6 +123,8 @@ class DecryptingCipher():
 
 class Encryptor():
     def __init__(self, ssh_key: AgentKey, binary):
+        if ssh_key.name not in VALID_SSH_NAME:
+            raise ValueError("Incompatible Key Material (Only RSA is Supported")
         self.nonce = self.generate_nonce()
         self.buf = deque()
         self.binary = binary
@@ -108,7 +141,7 @@ class Encryptor():
         data = self.encoder.encode(data)
 
         if not self.binary:
-            data = base64.b85encode(data) 
+            data = base64.b85encode(data)
 
         self.buf.extend(data)
         data = bytes(self.buf)
@@ -118,6 +151,8 @@ class Encryptor():
 
 class Decryptor():
     def __init__(self, ssh_key: AgentKey, binary):
+        if ssh_key.name not in VALID_SSH_NAME:
+            raise ValueError("Incompatible Key Material (Only RSA is Supported")
         self.ssh_key = ssh_key
         self.decoder = None
         self.buf = deque()
@@ -164,7 +199,11 @@ class Processor():
             string_data: Optional[str],
             binary: Optional[bool] = False
     ):
-        self.processor = processor(ssh_key, binary)
+        try:
+            self.processor = processor(ssh_key, binary)
+        except ValueError as err:
+            sys.stderr.write('%s\n' % err)
+            exit(1)
         self.input = sys.stdin.buffer
         if string_data:
             self.input = BytesIO(string_data.encode('utf-8'))
@@ -184,6 +223,7 @@ class Processor():
                 break
 
         self.output.write(self.processor.send(b''))
+        self.output.flush()
 
 
 class E():
@@ -223,10 +263,16 @@ def main() -> None:
 
     parser.add_argument('--string', '-s', nargs='?', help='input string')
 
+    parser.add_argument('--key', '-k', nargs='?', help='Key Filter')
+
     parser.add_argument('--binary', '-b', action='store_true', default=False, help='encrypt into binary data')
 
     args = parser.parse_args()
-
+    if args.key:
+        ssh_key = find_filter_key(args.key)
+        if not ssh_key:
+            sys.stderr.write('SSH key not found\n')
+            exit(1)
     Processor(
         ssh_key,
         args.processor,
