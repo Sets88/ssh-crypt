@@ -22,7 +22,7 @@ from paramiko.ssh_exception import SSHException
 from paramiko.agent import cSSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER
 
 NONCE_LENGTH = 64
-VALID_SSH_NAME = ["ssh-rsa"]
+VALID_SSH_NAME = ["ssh-rsa", "ssh-ed25519"]
 
 
 def get_keys():
@@ -39,7 +39,7 @@ def get_keys():
 
 
 def get_first_key():
-    # Only RSA based key have capability to get the same sign data from same nonce
+    # Only RSA and ED25519 keys have capability to get the same sign data from same nonce
     keys = get_keys()
     keys = [key for key in keys if key[0].name in VALID_SSH_NAME]
     if keys:
@@ -124,7 +124,7 @@ class DecryptingCipher():
 class Encryptor():
     def __init__(self, ssh_key: AgentKey, binary):
         if ssh_key.name not in VALID_SSH_NAME:
-            raise ValueError("Incompatible Key Material (Only RSA is Supported")
+            raise ValueError("Incompatible Key Material (Only RSA or ED25519 is Supported")
         self.nonce = self.generate_nonce()
         self.buf = deque()
         self.binary = binary
@@ -152,7 +152,7 @@ class Encryptor():
 class Decryptor():
     def __init__(self, ssh_key: AgentKey, binary):
         if ssh_key.name not in VALID_SSH_NAME:
-            raise ValueError("Incompatible Key Material (Only RSA is Supported")
+            raise ValueError("Incompatible Key Material (Only RSA or ED25519 is Supported")
         self.ssh_key = ssh_key
         self.decoder = None
         self.buf = deque()
