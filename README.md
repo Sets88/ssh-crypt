@@ -130,6 +130,16 @@ Examples:
     ssh-crypt -e -i /tmp/testfile -b
 
 
+-k, --key
+
+Pick key in ssh-agent keys list by its comment
+
+Examples:
+
+    ssh-crypt -e -s 'testpassword' -k testkey
+    ssh-crypt -d -s '{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5' -k testkey
+
+
 # Bugs
 
 See github issues: https://github.com/Sets88/ssh-crypt/issues
