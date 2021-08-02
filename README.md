@@ -132,7 +132,7 @@ Examples:
 
 -k, --key
 
-Pick key in ssh-agent keys list by its comment
+Pick key from ssh-agent keys list by its comment
 
 Examples:
 
