@@ -1,14 +1,14 @@
 # Why you may need it
 
-Sometimes you want to store your password into your shell scripts
-but it's not very safe to keep raw passwords in it
+Sometimes you want to keep your password inside your shell scripts
+but it's not very safe to have raw passwords in it
 
 This module can help you to solve this problem by keeping your passwords encrypted.
 
-The idea is you have your ssh key which protected with master password
-and there is an ssh-agent which can keep your ssh key, so you can use it as
+The idea is you have your ssh key which protected with master password(or a special device containing a key)
+and there is an ssh-agent which can keep your ssh key(or use you key device), so you can use you key as an
 encryption key, until you have your key in ssh-agent you can decrypt your passwords
-in your shell scripts, while if ssh key is in not in your ssh-agent you(or somebody else) can't
+inside your shell scripts, but after your ssh key been removed from your ssh-agent you(or somebody else) can't
 use it to encrypt/decrypt passwords or other sensitive data, here how you can use it:
 You add your ssh key into ssh-agent:
 
@@ -28,7 +28,7 @@ lets write a shell script:
 
     mysql -h localhost -u testuser -p$(ssh-crypt -d -s $PASS)
 
-so now you don't have raw password in you shell script anymore, while this encrypted password
+now you don't have raw password inside your shell script anymore, while this encrypted password
 can be decrypted only if your ssh key still in your ssh-agent
 
 
@@ -51,6 +51,7 @@ creates sha3_256 from it and uses it as a AES key to decrypt the rest of data
 
 ![How decryption works](/data/decryption.png)
 
+
 # How to install it
 
     pip install ssh-crypt
@@ -62,6 +63,57 @@ from ssh_crypt import E
 
 super_secret_password = str(E('{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5'))
 ```
+
+# Using yubiko keys to keep your ssh key
+
+## Install yubico-piv-tool
+
+Download it from https://developers.yubico.com/yubico-piv-tool/Releases/ or from (brew, apt, yum, or pacman)
+
+## SSH Key
+
+Generate new key
+
+    ssh-keygen -b 2048 -t rsa -m PEM
+
+or alter current key to PEM format
+
+    ssh-keygen -p -m PEM
+
+unfortunately 4096 and longer RSA keys are not supported by PIV specification
+
+## Import key to yubikey
+
+Slot 9a only can be used to store rsa key
+
+    yubico-piv-tool --touch-policy=cached -s 9a -a import-key --pin-policy=once -i id_rsa
+
+## Add card to ssh-agent
+
+Remove old card if exists (as if it was previously added next command will not work even if "ssh-add -D" executed)
+
+    ssh-add -e /usr/local/lib/libykcs11.dylib
+
+Add new card
+
+    ssh-add -s /usr/local/lib/libykcs11.dylib
+
+Enter Yubikey PIN when it's asked for passphrase for PKCS#11
+All set up now but you have to confirm decryption by touching yubico button
+if it't not convinient for you to touch button all the time you can disable this behaviour by removeing
+"--touch-policy=cached" param during key import
+
+
+# Using SSH-Agent Forwarding
+
+There is an option to use scripts with encrypted passwords in it on remote hosts, by connecting to it via ssh like this
+
+    ssh -A user@somehost
+
+"-A" parameter enables SSH-Agent forwarding.
+**Beware!** never use this technique if you don't fully trust remote host
+as someone who has enough permissions on that host may use your ssh agent for bad purpose 
+
 
 # Options
 
@@ -81,7 +133,7 @@ Examples:
 
 -d, --decrypt
 
-Decrypt incomming data, if not set encrypt mode will be enabled
+Decrypt incomming data, encrypt mode will be enabled if not set
 
 Examples:
 
@@ -91,7 +143,7 @@ Examples:
 
 -i, --input
 
-Input file, if not set STDIN will be used
+Input file, STDIN will be used if not set
 
 Examples:
 
@@ -102,7 +154,7 @@ Examples:
 
 -o, --output
 
-Output file, if not set STDOUT will be used
+Output file, STDOUT will be used if not set
 
 Examples:
 
@@ -122,7 +174,7 @@ Examples:
 
 -b, --binary
 
-Not use base85(used to make encrypted data look more like text file, to allow to copy it into shell scripts) for payload
+Not use base85(used to make encrypted data look more like text file, to allow to copy it inside shell scripts) for payload
 
 Examples:
 
