@@ -104,6 +104,39 @@ if it't not convinient for you to touch button all the time you can disable this
 "--touch-policy=cached" param during key import
 
 
+# Use it with apps which demands config files which have to contain some token or password
+
+Just create a shell script with which you can access your application here is an example:
+
+    #! /bin/bash
+
+    TOKEN='{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5'
+
+    CONFIG="apiVersion: v1
+    clusters:
+    - cluster:
+        certificate-authority-data: ***somesertdata**
+        server: https://kuber-api-host:6443
+      name: app
+    contexts:
+    - context:
+        cluster: app
+        namespace: some-namespace
+        user: max
+      name: app
+    current-context: app
+    kind: Config
+    preferences: {}
+    users:
+    - name: max
+      user:
+        token:
+         $(ssh-crypt -d -s $TOKEN)
+    "
+
+    kubectl --kubeconfig <(echo "$CONFIG") $*
+
+
 # Using SSH-Agent Forwarding
 
 There is an option to use scripts with encrypted passwords in it on remote hosts, by connecting to it via ssh like this
