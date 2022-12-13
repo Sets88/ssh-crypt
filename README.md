@@ -10,7 +10,7 @@ and there is an ssh-agent which can keep your ssh key(or use you key device), so
 encryption key, until you have your key in ssh-agent you can decrypt your passwords
 inside your shell scripts, but after your ssh key been removed from your ssh-agent you(or somebody else) can't
 use it to encrypt/decrypt passwords or other sensitive data, here how you can use it:
-You add your ssh key into ssh-agent:
+You add your ssh key to ssh-agent:
 
     /usr/bin/ssh-add -t 1d -k ~/.ssh/id_rsa
 
