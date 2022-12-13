@@ -218,12 +218,15 @@ Examples:
 
 -k, --key
 
-Pick key from ssh-agent keys list by its comment
+Pick key from ssh-agent keys list by its fingerprint
+
+    ssh-add -l -E md5
+    2048 MD5:12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34 Public key for PIV Authentication (RSA)
 
 Examples:
 
-    ssh-crypt -e -s 'testpassword' -k testkey
-    ssh-crypt -d -s '{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5' -k testkey
+    ssh-crypt -e -s 'testpassword' --key '12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34'
+    ssh-crypt -d -s '{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5' -k '12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34'
 
 
 # Bugs

@@ -216,6 +216,10 @@ class Processor():
     def run(self) -> None:
         while True:
             data = self.input.read(4096)
+
+            if not data:
+                break
+
             chunk = self.processor.send(data)
             if chunk:
                 self.output.write(chunk)
@@ -263,6 +267,10 @@ def main() -> None:
 
     parser.add_argument('--string', '-s', nargs='?', help='input string')
 
+    # List all keys fingerprints in md5
+    # # ssh-add -l -E md5
+    # 2048 MD5:12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34 Public key for PIV Authentication (RSA)
+    # --key '12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34'
     parser.add_argument('--key', '-k', nargs='?', help='Key Filter')
 
     parser.add_argument('--binary', '-b', action='store_true', default=False, help='encrypt into binary data')
