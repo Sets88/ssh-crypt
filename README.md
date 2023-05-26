@@ -1,26 +1,24 @@
 # Why you may need it
 
-Sometimes you want to keep your password inside your shell scripts
-but it's not very safe to have raw passwords in it
+Sometimes, you may need to store passwords within your shell scripts, but doing so in plain text is a major security risk.
 
-This module can help you to solve this problem by keeping your passwords encrypted.
+Fortunately, this module can help you keep your passwords encrypted and secure.
 
-The idea is you have your ssh key which protected with master password(or a special device containing a key)
-and there is an ssh-agent which can keep your ssh key(or use you key device), so you can use you key as an
-encryption key, until you have your key in ssh-agent you can decrypt your passwords
-inside your shell scripts, but after your ssh key been removed from your ssh-agent you(or somebody else) can't
-use it to encrypt/decrypt passwords or other sensitive data, here how you can use it:
-You add your ssh key to ssh-agent:
+Here's how it works: you protect your ssh key with a master password or a special device, and then use the ssh-agent
+to keep your ssh key (or use your key device). This allows you to use your key as an encryption key, and decrypt your
+passwords within your shell scripts while your key is in the ssh-agent. However, once your ssh key is removed
+from the ssh-agent, neither you nor anyone else can use it to encrypt or decrypt sensitive data.
+To use this module, simply add your ssh key to the ssh-agent:
 
     /usr/bin/ssh-add -t 1d -k ~/.ssh/id_rsa
 
-You enter master password and now you have ssh key in your ssh-agent,
-Now you can use it to encrypt passwords or other sensitive data:
+After entering your master password, your ssh key is now stored in the ssh-agent. You can use it
+to encrypt passwords or other sensitive data securely:
 
     ssh-crypt -e -s 'testpassword'
 
-You get string which contains your encrypted password, copy it, you can use it further,
-lets write a shell script:
+Once you have encrypted your password, you will receive a string containing the encrypted data.
+You can copy this string and use it as needed. To automate this process, you can write a shell script:
 
     !/bin/bash
 
@@ -28,11 +26,13 @@ lets write a shell script:
 
     mysql -h localhost -u testuser -p$(ssh-crypt -d -s $PASS)
 
-now you don't have raw password inside your shell script anymore, while this encrypted password
-can be decrypted only if your ssh key still in your ssh-agent
+By using this module, you no longer need to store raw passwords within your shell scripts.
+Instead, you can use encrypted passwords that can only be decrypted if your ssh key is still stored in
+the ssh-agent. This ensures that your sensitive data remains secure and protected from unauthorized access.
 
-
-Also you can use it just to encrypt/decrypt files like here:
+In addition to encrypting and decrypting passwords, this module can also be used to encrypt and
+decrypt files. This provides an extra layer of security for your sensitive data, ensuring
+that it remains protected from prying eyes.
 
     ssh-crypt -e -i /tmp/rawfile -o /tmp/encrypted_file
     ssh-crypt -d -i /tmp/encrypted_file -o /tmp/rawfile
@@ -40,14 +40,17 @@ Also you can use it just to encrypt/decrypt files like here:
 
 # How it works
 
-When you encrypt your password it generates random bytes, which signed by you ssh key
-from your ssh-agent, then it creates sha3_256 from this signature and uses it as a key
-to encrypt your data with AES and creating base85 of it if binary mode is not enabled
+When you encrypt your password using this module, it generates random bytes that are signed by
+your ssh key from your ssh-agent. It then creates a sha3_256 hash from this signature and uses
+it as a key to encrypt your data with AES. If binary mode is not enabled, it also creates
+a base85 representation of the encrypted data. This process ensures that your sensitive data
+is encrypted using a strong key and is protected from unauthorized access.
 
 ![How encryption works](/data/encryption.png)
 
-When you decrypt your password it takes nonce bytes from the string you pass, signs it with your ssh key,
-creates sha3_256 from it and uses it as a AES key to decrypt the rest of data
+When you decrypt your password using this module, it takes the nonce bytes from the string
+you pass and signs it with your ssh key. It then creates a sha3_256 hash from this signature
+and uses it as an AES key to decrypt the rest of the data.
 
 ![How decryption works](/data/decryption.png)
 
@@ -140,13 +143,15 @@ kubectl --kubeconfig <(echo "$CONFIG") $*
 
 # Using SSH-Agent Forwarding
 
-There is an option to use scripts with encrypted passwords in it on remote hosts, by connecting to it via ssh like this
+This module also allows you to use scripts with encrypted passwords on remote hosts by connecting to them via ssh.
+This can be done by using the ssh-agent to forward your ssh key to the remote host, allowing you to decrypt
+the passwords within your scripts on the remote host.
 
     ssh -A user@somehost
 
 "-A" parameter enables SSH-Agent forwarding.
 **Beware!** never use this technique if you don't fully trust remote host
-as someone who has enough permissions on that host may use your ssh agent for bad purpose 
+as someone who has enough permissions on remote host may use your ssh agent for bad purpose
 
 
 # Options
