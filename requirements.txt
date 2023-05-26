@@ -1,2 +1,2 @@
-paramiko==2.7.2
-cryptography==3.4.6
+paramiko==3.2.0
+cryptography==40.0.2
