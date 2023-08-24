@@ -141,6 +141,34 @@ users:
 kubectl --kubeconfig <(echo "$CONFIG") $*
 ```
 
+# Get JSON from JSONC file with encrypted passwords
+
+```bash
+    cat test.json
+    {
+        "tst": 1, // Some number
+        "aa": {
+            /*
+            "bb": [1,2,3],
+            "ee": "bbb",
+            */
+            "password": E"{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5"
+        },
+        // Some comment
+        "cc": [32,21,10],
+        "ee": "bbb"
+    }
+    ssh-crypt -i test.json -t jsonc
+    {
+        "tst": 1,     "aa": {
+
+            "password": "testpassword"
+        },
+            "cc": [32,21,10],
+        "ee": "bbb"
+    }
+```
+
 # Using SSH-Agent Forwarding
 
 This module also allows you to use scripts with encrypted passwords on remote hosts by connecting to them via ssh.
@@ -232,6 +260,15 @@ Examples:
 
     ssh-crypt -e -s 'testpassword' --key '12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34'
     ssh-crypt -d -s '{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5' -k '12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34'
+
+
+-t, --type
+
+Set type of input data, for instance it may replace encrypted passwords inside JSONC file returning JSON
+
+Example:
+
+    ssh-crypt -i test.json -t jsonc
 
 
 # Bugs
