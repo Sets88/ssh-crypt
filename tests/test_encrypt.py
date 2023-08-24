@@ -18,7 +18,9 @@ from paramiko.ecdsakey import ECDSAKey
 from cryptography.hazmat.primitives.serialization import PublicFormat
 from cryptography.hazmat.primitives.serialization import Encoding
 
-from ssh_crypt.ssh_crypt import Processor, Decryptor, Encryptor, get_keys, get_first_key, find_filter_key
+from ssh_crypt.ssh_crypt import Processor
+from ssh_crypt.ciphers import Decryptor, Encryptor
+from ssh_crypt.utils import get_keys, get_first_key, find_filter_key
 
 SSH2_AGENTC_ADD_IDENTITY = 17
 SSH_AGENT_SUCCESS = 6
@@ -143,47 +145,47 @@ def test_ecdsa_in_agent(ssh_agent, ecdsa_key):
 
 
 def test_encrypt_rsa(rsa_in_agent):
-    processor = Encryptor(rsa_in_agent, b"")
+    processor = Encryptor(rsa_in_agent, False)
     data = processor.send(b"test_string")
     assert len(data) > 0
 
 
 def test_encrypt_dss(dss_in_agent):
     with pytest.raises(ValueError):
-        processor = Encryptor(dss_in_agent, b"")
+        processor = Encryptor(dss_in_agent, False)
         data = processor.send(b"test_string")
         assert len(data) > 0
 
 
 def test_encrypt_ecdsa(ecdsa_in_agent):
     with pytest.raises(ValueError):
-        processor = Encryptor(ecdsa_in_agent, b"")
+        processor = Encryptor(ecdsa_in_agent, False)
         data = processor.send(b"test_string")
         assert len(data) > 0
 
 
 def test_decrypt_ecdsa(ecdsa_in_agent):
     with pytest.raises(ValueError):
-        encryptor = Encryptor(ecdsa_in_agent, b"")
+        encryptor = Encryptor(ecdsa_in_agent, False)
         data = encryptor.send(b"test_string")
-        decryptor = Decryptor(ecdsa_in_agent, data)
+        decryptor = Decryptor(ecdsa_in_agent, False)
         data_out = decryptor.send(data)
         assert len(data_out) > 0
 
 
 def test_decrypt_rsa(rsa_in_agent):
-    Encryptor(rsa_in_agent, False)
+    encryptor = Encryptor(rsa_in_agent, False)
+    decryptor = Decryptor(rsa_in_agent, False)
     random_data = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(64))
     with tempfile.NamedTemporaryFile() as file_obj_encryptor:
         with tempfile.NamedTemporaryFile("r") as file_obj_decryptor:
-            encryptor = Processor(ssh_key=rsa_in_agent,
-                                  processor=Encryptor,
+            encryptor = Processor(data_processor=encryptor,
                                   string_data=random_data,
                                   output_file=file_obj_encryptor.name,
                                   input_file=None)
             encryptor.run()
-            decryptor = Processor(ssh_key=rsa_in_agent,
-                                  processor=Decryptor,
+            decryptor = Processor(
+                                  data_processor=decryptor,
                                   string_data=None,
                                   output_file=file_obj_decryptor.name,
                                   input_file=file_obj_encryptor.name)
@@ -197,14 +199,12 @@ def test_decrypt_dss(dss_in_agent):
         random_data = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(64))
         with tempfile.NamedTemporaryFile() as file_obj_encryptor:
             with tempfile.NamedTemporaryFile("r") as file_obj_decryptor:
-                encryptor = Processor(ssh_key=dss_in_agent,
-                                      processor=Encryptor,
+                encryptor = Processor(data_processor=Encryptor,
                                       string_data=random_data,
                                       output_file=file_obj_encryptor.name,
                                       input_file=None)
                 encryptor.run()
-                decryptor = Processor(ssh_key=dss_in_agent,
-                                      processor=Decryptor,
+                decryptor = Processor(data_processor=Decryptor,
                                       string_data=None,
                                       output_file=file_obj_decryptor.name,
                                       input_file=file_obj_encryptor.name)
