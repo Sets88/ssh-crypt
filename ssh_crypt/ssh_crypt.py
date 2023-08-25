@@ -1,5 +1,6 @@
 import sys
 import argparse
+from functools import lru_cache
 from io import BytesIO
 from typing import Optional
 
@@ -55,11 +56,19 @@ def create_encr_span(ssh_key: AgentKey):
         END = b'"'
         ESCAPE = b'\\'
 
-        def __bytes__(self):
-            return (b'"' + bytes(E(
-                self.data[2:-1].replace(b'\\\\', b'\\'),
+        @lru_cache(maxsize=1024)
+        @staticmethod
+        def decrypt(data):
+            return bytes(E(
+                data,
                 ssh_key=ssh_key
-            )) + b'"')
+            ))
+
+        def __bytes__(self):
+            data_to_decrypt = self.data[2:-1].replace(b'\\\\', b'\\')
+            return (b'"' + EncrSpan.decrypt(
+                data_to_decrypt
+            ) + b'"')
 
         def __str__(self):
             return bytes(self).decode('utf-8')
