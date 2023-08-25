@@ -56,8 +56,8 @@ def create_encr_span(ssh_key: AgentKey):
         END = b'"'
         ESCAPE = b'\\'
 
-        @lru_cache(maxsize=1024)
         @staticmethod
+        @lru_cache(maxsize=1024)
         def decrypt(data):
             return bytes(E(
                 data,
