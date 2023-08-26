@@ -26,6 +26,7 @@ setup(
     platforms='any',
     install_requires=get_requirements(),
     python_requires='>=3.5',
+    url="https://github.com/Sets88/ssh-crypt",
     entry_points={
         'console_scripts': [
             'ssh-crypt = ssh_crypt:main',
