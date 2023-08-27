@@ -1,7 +1,6 @@
 # Why you may need it
 
 [![PyPI version](https://img.shields.io/pypi/v/ssh-crypt.svg?color=blue)](https://pypi.org/project/ssh-crypt)
-[![Python versions](https://img.shields.io/pypi/pyversions/ssh-crypt.svg)](https://pypi.org/project/ssh-crypt)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause/)
 
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](Black)
