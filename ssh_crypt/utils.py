@@ -43,14 +43,14 @@ def find_filter_key(ssh_filter):
         return filter_keys[0][0]
 
 
-class E():
+class E:
     def __init__(
-            self,
-            data: Union[str, bytes],
-            binary=False,
-            key: Optional[str] = None,
-            ssh_key: Optional[AgentKey] = None
-        ):
+        self,
+        data: Union[str, bytes],
+        binary=False,
+        key: Optional[str] = None,
+        ssh_key: Optional[AgentKey] = None,
+    ):
         if ssh_key:
             self.ssh_key = ssh_key
         if key:
@@ -59,14 +59,14 @@ class E():
             self.ssh_key = get_first_key()
 
         if isinstance(data, str):
-            data = data.encode('utf-8')
+            data = data.encode("utf-8")
         self.data = data
 
     def __bytes__(self) -> bytes:
         ssh_key = get_first_key()
 
         decryptor = Decryptor(ssh_key, binary=False)
-        return decryptor.send(self.data) + decryptor.send(b'')
+        return decryptor.send(self.data) + decryptor.send(b"")
 
     def __str__(self) -> str:
-        return self.__bytes__().decode('utf-8')
+        return self.__bytes__().decode("utf-8")
