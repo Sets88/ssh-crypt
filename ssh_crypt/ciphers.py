@@ -21,7 +21,7 @@ class ProcessorsAbc(ABC):
     pass
 
 
-class EncryptingCipher():
+class EncryptingCipher:
     def __init__(self, key: bytes):
         self.buf = deque()
         self.algorithm = algorithms.AES
@@ -37,7 +37,9 @@ class EncryptingCipher():
 
     def encode(self, data: bytes) -> bytes:
         if not data:
-            self.buf.extend(self.cipher.update(self.padder.finalize()) + self.cipher.finalize())
+            self.buf.extend(
+                self.cipher.update(self.padder.finalize()) + self.cipher.finalize()
+            )
         else:
             padded = self.padder.update(data)
             self.buf.extend(self.cipher.update(padded))
@@ -47,7 +49,7 @@ class EncryptingCipher():
         return data
 
 
-class DecryptingCipher():
+class DecryptingCipher:
     def __init__(self, key: bytes):
         self.buf = deque()
         self.key = key
@@ -65,12 +67,14 @@ class DecryptingCipher():
     def decode(self, data: bytes) -> bytes:
         self.buf.extend(data)
         if self.cipher is None and len(self.buf) >= self.block_size:
-            self.configure_cipher(bytes([self.buf.popleft() for _i in range(self.block_size)]))
+            self.configure_cipher(
+                bytes([self.buf.popleft() for _i in range(self.block_size)])
+            )
 
         if not data:
             decrypted = self.cipher.update(bytes(self.buf)) + self.cipher.finalize()
 
-            unpadded = b''
+            unpadded = b""
 
             if decrypted:
                 unpadded = self.unpadder.update(unpadded)
@@ -87,18 +91,22 @@ class DecryptingCipher():
 class Encryptor(ProcessorsAbc):
     def __init__(self, ssh_key: AgentKey, binary):
         if ssh_key.name not in VALID_SSH_NAME:
-            raise ValueError("Incompatible Key Material (Only RSA or ED25519 is Supported")
+            raise ValueError(
+                "Incompatible Key Material (Only RSA or ED25519 is Supported"
+            )
         self.nonce = self.generate_nonce()
         self.buf = deque()
         self.binary = binary
-        self.buf.extend(self.nonce + b':')
+        self.buf.extend(self.nonce + b":")
         self.encoder = EncryptingCipher(self.get_encryption_key(ssh_key))
 
     def get_encryption_key(self, ssh_key: AgentKey) -> bytes:
         return sha3_256(ssh_key.sign_ssh_data(self.nonce)).digest()
 
     def generate_nonce(self) -> bytes:
-        return base64.b85encode(random.getrandbits(NONCE_LENGTH).to_bytes(int(NONCE_LENGTH / 8), 'big'))
+        return base64.b85encode(
+            random.getrandbits(NONCE_LENGTH).to_bytes(int(NONCE_LENGTH / 8), "big")
+        )
 
     def send(self, data: bytes) -> bytes:
         data = self.encoder.encode(data)
@@ -115,7 +123,9 @@ class Encryptor(ProcessorsAbc):
 class Decryptor(ProcessorsAbc):
     def __init__(self, ssh_key: AgentKey, binary):
         if ssh_key.name not in VALID_SSH_NAME:
-            raise ValueError("Incompatible Key Material (Only RSA or ED25519 is Supported")
+            raise ValueError(
+                "Incompatible Key Material (Only RSA or ED25519 is Supported"
+            )
         self.ssh_key = ssh_key
         self.decoder = None
         self.buf = deque()
@@ -131,20 +141,22 @@ class Decryptor(ProcessorsAbc):
         self.buf.extend(data)
 
         if self.decoder is None:
-            if int.from_bytes(b':', 'big') in self.buf:
-                nonce = bytes(self.buf).split(b':')[0]
+            if int.from_bytes(b":", "big") in self.buf:
+                nonce = bytes(self.buf).split(b":")[0]
                 [self.buf.popleft() for _i in range(len(nonce) + 1)]
                 self.init_decoder(nonce)
             if not self.buf:
-                return b''
+                return b""
 
         if not self.decoder:
-            sys.stderr.write('Unable to decrypt data')
+            sys.stderr.write("Unable to decrypt data")
             exit(2)
 
         if not self.binary:
             b85block_size = len(self.buf) - (len(self.buf) % 5)
-            data = base64.b85decode(bytes([self.buf.popleft() for _i in range(b85block_size)]))
+            data = base64.b85decode(
+                bytes([self.buf.popleft() for _i in range(b85block_size)])
+            )
         else:
             data = bytes(self.buf)
             self.buf.clear()
