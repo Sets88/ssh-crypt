@@ -1,5 +1,5 @@
 # skips tests on windows
-# todo: adds mypy checks
+# todo: adds ruff and mypy checks
 
 name: Master build
 
