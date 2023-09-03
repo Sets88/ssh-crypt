@@ -138,7 +138,8 @@ def main() -> None:
 
     # List all keys fingerprints in md5
     # # ssh-add -l -E md5
-    # 2048 MD5:12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34 Public key for PIV Authentication (RSA)
+    # 2048 MD5:12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34
+    # Public key for PIV Authentication (RSA)
     # --key '12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34'
     parser.add_argument("--key", "-k", nargs="?", help="Key Filter")
 

@@ -24,7 +24,8 @@ def get_keys():
 
 
 def get_first_key():
-    # Only RSA and ED25519 keys have capability to get the same sign data from same nonce
+    # Only RSA and ED25519 keys have capability to get
+    # the same sign data from same nonce
     keys = get_keys()
     keys = [key for key in keys if key[0].name in VALID_SSH_NAME]
     if keys:
