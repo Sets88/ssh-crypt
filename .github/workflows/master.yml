@@ -1,5 +1,5 @@
 # skips tests on windows
-# todo: adds ruff and mypy checks
+# todo: adds mypy checks
 
 name: Master build
 
@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - master
+  pull_request:
+
 
 jobs:
   build:
