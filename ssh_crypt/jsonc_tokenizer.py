@@ -8,9 +8,9 @@ class TokenStat(Enum):
     WRONG = 4
 
 
-class Token():
+class Token:
     def __init__(self):
-        self.data = b''
+        self.data = b""
 
     def add(self, char: bytes):
         self.data = self.data + char
@@ -24,37 +24,43 @@ class Token():
         return self.data
 
     def __str__(self) -> str:
-        return bytes(self).decode('utf-8')
+        return bytes(self).decode("utf-8")
 
 
-class Span():
-    START = b''
-    END = b''
-    ESCAPE = b''
+class Span:
+    START = b""
+    END = b""
+    ESCAPE = b""
 
     def __init__(self):
-        self.data = b''
-        self.pending_data = b''
+        self.data = b""
+        self.pending_data = b""
         self.status = None
 
     def add_char(self, char: bytes):
         self.data = self.data + char
 
     def add(self, char: bytes) -> TokenStat:
-        if (self.status == TokenStat.WRONG):
+        if self.status == TokenStat.WRONG:
             return self.status
 
-        if (not self.status or self.status == TokenStat.PENDING) and not self.START.startswith(self.pending_data + char):
+        if (
+            not self.status or self.status == TokenStat.PENDING
+        ) and not self.START.startswith(self.pending_data + char):
             self.status = TokenStat.WRONG
             return self.status
 
-        if (not self.status or self.status == TokenStat.PENDING) and self.START == self.pending_data + char:
-            self.pending_data = ''
+        if (
+            not self.status or self.status == TokenStat.PENDING
+        ) and self.START == self.pending_data + char:
+            self.pending_data = ""
             self.add_char(char)
             self.status = TokenStat.STARTED
             return self.status
 
-        if (not self.status or self.status == TokenStat.PENDING) and self.START.startswith(self.pending_data + char):
+        if (
+            not self.status or self.status == TokenStat.PENDING
+        ) and self.START.startswith(self.pending_data + char):
             self.pending_data = self.pending_data + char
             self.add_char(char)
             self.status = TokenStat.PENDING
@@ -72,26 +78,26 @@ class Span():
         return self.data
 
     def __str__(self) -> str:
-        return bytes(self).decode('utf-8')
+        return bytes(self).decode("utf-8")
 
 
 class StringSpan(Span):
     START = b'"'
     END = b'"'
-    ESCAPE = b'\\'
+    ESCAPE = b"\\"
 
 
 class CommentSpan(Span):
-    START = b'//'
-    END = b'\n'
+    START = b"//"
+    END = b"\n"
 
 
 class Comment2Span(Span):
-    START = b'/*'
-    END = b'*/'
+    START = b"/*"
+    END = b"*/"
 
 
-class Tokenizer():
+class Tokenizer:
     SPANS = (StringSpan, CommentSpan, Comment2Span)
 
     def __init__(self):
