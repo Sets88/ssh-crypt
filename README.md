@@ -1,5 +1,10 @@
 # Why you may need it
 
+[![PyPI version](https://img.shields.io/pypi/v/ssh-crypt.svg?color=blue)](https://pypi.org/project/ssh-crypt)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause/)
+
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](Black)
+
 Sometimes, you may need to store passwords within your shell scripts, but doing so in plain text is a major security risk.
 
 Fortunately, this module can help you keep your passwords encrypted and secure.
