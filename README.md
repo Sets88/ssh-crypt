@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause/)
 
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](Black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 Sometimes, you may need to store passwords within your shell scripts, but doing so in plain text is a major security risk.
 
