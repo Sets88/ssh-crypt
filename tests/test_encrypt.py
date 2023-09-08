@@ -28,9 +28,29 @@ SSH_AGENT_SUCCESS = 6
 
 @pytest.fixture
 def ssh_agent():
-    ssh_agent_exec = subprocess.run(["ssh-agent"], capture_output=True, encoding="utf-8")
-    pid = next(iter([s.split("=")[1].strip(";") for s in shlex.split(ssh_agent_exec.stdout) if "SSH_AGENT_PID=" in s]), None)
-    auth_sock = next(iter([s.split("=")[1].strip(";") for s in shlex.split(ssh_agent_exec.stdout) if "SSH_AUTH_SOCK=" in s]), None)
+    ssh_agent_exec = subprocess.run(
+        ["ssh-agent"], capture_output=True, encoding="utf-8"
+    )
+    pid = next(
+        iter(
+            [
+                s.split("=")[1].strip(";")
+                for s in shlex.split(ssh_agent_exec.stdout)
+                if "SSH_AGENT_PID=" in s
+            ]
+        ),
+        None,
+    )
+    auth_sock = next(
+        iter(
+            [
+                s.split("=")[1].strip(";")
+                for s in shlex.split(ssh_agent_exec.stdout)
+                if "SSH_AUTH_SOCK=" in s
+            ]
+        ),
+        None,
+    )
     os.environ["SSH_AUTH_SOCK"] = auth_sock
     os.environ["SSH_AGENT_PID"] = pid
     agent = Agent()
@@ -75,7 +95,11 @@ def ecdsa_to_agent(self, ssh_agent, comment="TEST_ECDSA_KEY"):
     msg.add_byte(bytes([SSH2_AGENTC_ADD_IDENTITY]))
     msg.add_string(self.get_name())
     msg.add_string(self.ecdsa_curve.nist_name)
-    msg.add_string(self.signing_key.public_key().public_bytes(encoding=Encoding.X962, format=PublicFormat.UncompressedPoint))
+    msg.add_string(
+        self.signing_key.public_key().public_bytes(
+            encoding=Encoding.X962, format=PublicFormat.UncompressedPoint
+        )
+    )
     msg.add_mpint(self.signing_key.private_numbers().private_value)
     msg.add_string(comment)
     response = ssh_agent._send_message(msg)[0]
@@ -176,19 +200,25 @@ def test_decrypt_ecdsa(ecdsa_in_agent):
 def test_decrypt_rsa(rsa_in_agent):
     encryptor = Encryptor(rsa_in_agent, False)
     decryptor = Decryptor(rsa_in_agent, False)
-    random_data = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(64))
+    random_data = "".join(
+        random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits)
+        for _ in range(64)
+    )
     with tempfile.NamedTemporaryFile() as file_obj_encryptor:
         with tempfile.NamedTemporaryFile("r") as file_obj_decryptor:
-            encryptor = Processor(data_processor=encryptor,
-                                  string_data=random_data,
-                                  output_file=file_obj_encryptor.name,
-                                  input_file=None)
+            encryptor = Processor(
+                data_processor=encryptor,
+                string_data=random_data,
+                output_file=file_obj_encryptor.name,
+                input_file=None,
+            )
             encryptor.run()
             decryptor = Processor(
-                                  data_processor=decryptor,
-                                  string_data=None,
-                                  output_file=file_obj_decryptor.name,
-                                  input_file=file_obj_encryptor.name)
+                data_processor=decryptor,
+                string_data=None,
+                output_file=file_obj_decryptor.name,
+                input_file=file_obj_encryptor.name,
+            )
             decryptor.run()
             file_obj_decryptor.read() == random_data
 
@@ -196,18 +226,27 @@ def test_decrypt_rsa(rsa_in_agent):
 def test_decrypt_dss(dss_in_agent):
     with pytest.raises(ValueError):
         Encryptor(dss_in_agent, False)
-        random_data = ''.join(random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(64))
+        random_data = "".join(
+            random.choice(
+                string.ascii_lowercase + string.ascii_uppercase + string.digits
+            )
+            for _ in range(64)
+        )
         with tempfile.NamedTemporaryFile() as file_obj_encryptor:
             with tempfile.NamedTemporaryFile("r") as file_obj_decryptor:
-                encryptor = Processor(data_processor=Encryptor,
-                                      string_data=random_data,
-                                      output_file=file_obj_encryptor.name,
-                                      input_file=None)
+                encryptor = Processor(
+                    data_processor=Encryptor,
+                    string_data=random_data,
+                    output_file=file_obj_encryptor.name,
+                    input_file=None,
+                )
                 encryptor.run()
-                decryptor = Processor(data_processor=Decryptor,
-                                      string_data=None,
-                                      output_file=file_obj_decryptor.name,
-                                      input_file=file_obj_encryptor.name)
+                decryptor = Processor(
+                    data_processor=Decryptor,
+                    string_data=None,
+                    output_file=file_obj_decryptor.name,
+                    input_file=file_obj_encryptor.name,
+                )
                 decryptor.run()
                 file_obj_decryptor.read() == random_data
 

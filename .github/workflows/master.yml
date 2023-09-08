@@ -1,5 +1,5 @@
 # skips tests on windows
-# todo: adds ruff and mypy checks
+# todo: adds mypy checks
 
 name: Master build
 
@@ -33,7 +33,12 @@ jobs:
             python -m pip install --upgrade pip
             pip install setuptools build wheel twine
             pip install -r requirements.txt
-            pip install pytest
+            pip install pytest ruff
+
+      - name: Static checks (ruff)
+        shell: bash
+        run: |
+           ruff check .
 
       - name: Runtime checks (pytest)
         if: ${{ matrix.os != 'windows-latest' }}
