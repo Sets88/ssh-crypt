@@ -34,10 +34,9 @@ def ssh_agent(monkeypatch):
         ),
         None,
     )
-    os.environ["SSH_AUTH_SOCK"] = auth_sock
-    os.environ["SSH_AGENT_PID"] = pid
 
-    # make sure we connect to this agent
+    # make sure we connect to this agent, but after the test
+    # is terminated we restore the current state
     monkeypatch.setenv("SSH_AUTH_SOCK", auth_sock)
     monkeypatch.setenv("SSH_AGENT_PID", pid)
     agent = Agent()
