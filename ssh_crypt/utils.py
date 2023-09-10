@@ -27,7 +27,7 @@ def get_keys():
             "could not get keys from ssh-agent",
             f"check SSH_AUTH_SOCK={os.getenv('SSH_AUTH_SOCK')} "
             f"or SSH_AGENT_PID={os.getenv('SSH_AGENT_PID')} are"
-            f" pointing to the right agent and they are running",
+            f" pointing to the right agent and it is running",
         )
     keys = []
     for i in range(result.get_int()):
