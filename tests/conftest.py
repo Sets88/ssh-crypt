@@ -6,10 +6,13 @@ import signal
 import pytest
 
 
-@pytest.fixture
-def ssh_agent(monkeypatch):
+@pytest.fixture(scope="function")
+def ssh_agent(monkeypatch, tmp_path):
     from paramiko.agent import Agent
 
+    # this will make sure all ssh* operations will occour
+    # under a temporary directory (eg. non user ~/.ssh)
+    monkeypatch.setenv("SSH_HOME", str(tmp_path / ".ssh"))
 
     ssh_agent_exec = subprocess.run(
         ["ssh-agent"], capture_output=True, encoding="utf-8"
@@ -39,6 +42,7 @@ def ssh_agent(monkeypatch):
     # is terminated we restore the current state
     monkeypatch.setenv("SSH_AUTH_SOCK", auth_sock)
     monkeypatch.setenv("SSH_AGENT_PID", pid)
+
     agent = Agent()
     yield agent
     os.kill(int(pid), signal.SIGSTOP)
