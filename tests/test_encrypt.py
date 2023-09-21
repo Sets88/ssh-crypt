@@ -1,16 +1,12 @@
 import pytest
 
-import subprocess
-import shlex
-import os
-import signal
 import types
 import tempfile
 import random
 import string
 import binascii
 
-from paramiko import Agent, AgentKey, Message
+from paramiko import AgentKey, Message
 from paramiko.rsakey import RSAKey
 from paramiko.dsskey import DSSKey
 from paramiko.ecdsakey import ECDSAKey
@@ -24,38 +20,6 @@ from ssh_crypt.utils import get_keys, get_first_key, find_filter_key
 
 SSH2_AGENTC_ADD_IDENTITY = 17
 SSH_AGENT_SUCCESS = 6
-
-
-@pytest.fixture
-def ssh_agent():
-    ssh_agent_exec = subprocess.run(
-        ["ssh-agent"], capture_output=True, encoding="utf-8"
-    )
-    pid = next(
-        iter(
-            [
-                s.split("=")[1].strip(";")
-                for s in shlex.split(ssh_agent_exec.stdout)
-                if "SSH_AGENT_PID=" in s
-            ]
-        ),
-        None,
-    )
-    auth_sock = next(
-        iter(
-            [
-                s.split("=")[1].strip(";")
-                for s in shlex.split(ssh_agent_exec.stdout)
-                if "SSH_AUTH_SOCK=" in s
-            ]
-        ),
-        None,
-    )
-    os.environ["SSH_AUTH_SOCK"] = auth_sock
-    os.environ["SSH_AGENT_PID"] = pid
-    agent = Agent()
-    yield agent
-    os.kill(int(pid), signal.SIGSTOP)
 
 
 def rsa_to_agent(self, ssh_agent, comment="TEST_RSA_KEY"):
