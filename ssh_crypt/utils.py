@@ -1,20 +1,34 @@
+import os
 import binascii
 from typing import Union, Optional
 
 from paramiko import Agent
 from paramiko import AgentKey
-from paramiko.ssh_exception import SSHException
 from paramiko.agent import cSSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER
 
 from .ciphers import Decryptor
 from .constants import VALID_SSH_NAME
+from .exceptions import SSHCrypAgentNotConnected, SSHCryptCannotRetrieveKeysError
 
 
 def get_keys():
     agent = Agent()
+
+    # this is the only reliable way to check if there's a connection
+    # (see paramiko.agent.Agent.__init__)
+    if not agent._conn:
+        raise SSHCrypAgentNotConnected(
+            "no connection to an ssh agent",
+            "is ssh-agent running? is SSH_AUTH_SOCK set?",
+        )
     ptype, result = agent._send_message(cSSH2_AGENTC_REQUEST_IDENTITIES)
     if ptype != SSH2_AGENT_IDENTITIES_ANSWER:
-        raise SSHException("could not get keys from ssh-agent")
+        raise SSHCryptCannotRetrieveKeysError(
+            "could not get keys from ssh-agent",
+            f"check SSH_AUTH_SOCK={os.getenv('SSH_AUTH_SOCK')} "
+            f"or SSH_AGENT_PID={os.getenv('SSH_AGENT_PID')} are"
+            f" pointing to the right agent and it is running",
+        )
     keys = []
     for i in range(result.get_int()):
         key_blob = result.get_binary()
