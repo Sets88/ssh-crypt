@@ -13,7 +13,7 @@ def get_requirements():
 
 setup(
     name='ssh-crypt',
-    version='1.1.8',
+    version='1.1.9',
     license='BSD',
     author='Maxim Nikitenko',
     author_email='iam@sets88.com',
