@@ -67,11 +67,22 @@ and uses it as an AES key to decrypt the rest of the data.
 
 # How to use it in python scripts
 
+To decrypt passwords
+
 ```python
 from ssh_crypt import E
 
 super_secret_password = str(E('{V|B;*R$Ep:HtO~*;QAd?yR#b?V9~a34?!!sxqQT%{!x)bNby^5'))
 ```
+
+To encrypt passwords
+
+```python
+from ssh_crypt import encrypt
+
+encrypted_password = encrypt('super_secret_password')
+```
+
 
 # Using yubiko keys to keep your ssh key
 

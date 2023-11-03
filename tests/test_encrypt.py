@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.serialization import Encoding
 
 from ssh_crypt.ssh_crypt import Processor
 from ssh_crypt.ciphers import Decryptor, Encryptor
-from ssh_crypt.utils import get_keys, get_first_key, find_filter_key
+from ssh_crypt.utils import get_keys, get_first_key, find_filter_key, E, encrypt
 
 SSH2_AGENTC_ADD_IDENTITY = 17
 SSH_AGENT_SUCCESS = 6
@@ -252,3 +252,10 @@ def test_filter_key_fingerprint(ssh_agent, key_count=13):
     assert len(get_keys()) == key_count
     sample = binascii.hexlify(choose_fingerprint, sep=":")[9:20].decode()
     assert find_filter_key(sample).get_fingerprint() == choose_fingerprint
+
+
+def test_E_and_encrypt(rsa_in_agent):
+    random_data = ''.join(
+        random.choice(string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range(64)
+    )
+    assert str(E(encrypt(random_data, ssh_key=rsa_in_agent))) == random_data

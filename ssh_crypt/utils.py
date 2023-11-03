@@ -7,6 +7,7 @@ from paramiko import AgentKey
 from paramiko.agent import cSSH2_AGENTC_REQUEST_IDENTITIES, SSH2_AGENT_IDENTITIES_ANSWER
 
 from .ciphers import Decryptor
+from .ciphers import Encryptor
 from .constants import VALID_SSH_NAME
 from .exceptions import SSHCrypAgentNotConnected, SSHCryptCannotRetrieveKeysError
 
@@ -58,6 +59,37 @@ def find_filter_key(ssh_filter):
         return filter_keys[0][0]
 
 
+def choose_ssh_key(
+    key: Optional[str] = None,
+    ssh_key: Optional[AgentKey] = None
+) -> AgentKey:
+    if ssh_key:
+        return ssh_key
+
+    if key:
+        ssh_key = find_filter_key(key)
+
+    if not ssh_key:
+        ssh_key = get_first_key()
+
+    return ssh_key
+
+
+def encrypt(
+    data: Union[str, bytes],
+    binary: bool = False,
+    key: Optional[str] = None,
+    ssh_key: Optional[AgentKey] = None
+) -> bytes:
+    ssh_key = choose_ssh_key(key, ssh_key)
+
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+
+    encryptor = Encryptor(ssh_key, binary=binary)
+    return encryptor.send(data) + encryptor.send(b"")
+
+
 class E:
     def __init__(
         self,
@@ -66,21 +98,16 @@ class E:
         key: Optional[str] = None,
         ssh_key: Optional[AgentKey] = None,
     ):
-        if ssh_key:
-            self.ssh_key = ssh_key
-        if key:
-            self.ssh_key = find_filter_key(key)
-        if not key:
-            self.ssh_key = get_first_key()
+        self.binary = binary
+
+        self.ssh_key = choose_ssh_key(key, ssh_key)
 
         if isinstance(data, str):
             data = data.encode("utf-8")
         self.data = data
 
     def __bytes__(self) -> bytes:
-        ssh_key = get_first_key()
-
-        decryptor = Decryptor(ssh_key, binary=False)
+        decryptor = Decryptor(self.ssh_key, binary=self.binary)
         return decryptor.send(self.data) + decryptor.send(b"")
 
     def __str__(self) -> str:
