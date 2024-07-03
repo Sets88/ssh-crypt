@@ -1,8 +1,10 @@
+import os
 import sys
 import argparse
 from functools import lru_cache
 from io import BytesIO
 from typing import Optional
+from typing import Callable
 
 from paramiko import AgentKey
 
@@ -14,13 +16,13 @@ from .utils import get_first_key, find_filter_key, E
 class Processor:
     def __init__(
         self,
-        data_processor: ProcessorsAbc,
+        data_processor: Callable[[], ProcessorsAbc],
         input_file: Optional[str],
         output_file: Optional[str],
         string_data: Optional[str],
     ):
         try:
-            self.data_processor = data_processor
+            self.data_processor = data_processor()
         except ValueError as err:
             sys.stderr.write("%s\n" % err)
             exit(1)
@@ -45,9 +47,36 @@ class Processor:
                 self.output.write(chunk)
             if len(data) < 4096:
                 break
-
         self.output.write(self.data_processor.send(b""))
         self.output.flush()
+        self.output.close()
+
+
+class ProcessorFifoMode:
+    def __init__(
+        self,
+        data_processor: Callable[[], ProcessorsAbc],
+        input_file: Optional[str],
+        output_file: Optional[str],
+        string_data: Optional[str],
+    ):
+        self.data_processor = data_processor
+        self.input_file = input_file
+        self.output_file = output_file
+        self.string_data = string_data
+
+    def run(self):
+        while True:
+            try:
+                os.mkfifo(self.output_file)
+                processor = Processor(
+                    self.data_processor, self.input_file, self.output_file, self.string_data
+                )
+                processor.run()
+            except BrokenPipeError:
+                pass
+            finally:
+                os.unlink(self.output_file)
 
 
 def create_encr_span(ssh_key: AgentKey):
@@ -136,6 +165,14 @@ def main() -> None:
 
     parser.add_argument("--type", "-t", choices=["jsonc"], dest="type", action="store")
 
+    parser.add_argument(
+        "--fifomode",
+        "-f",
+        action="store_true",
+        default=False,
+        help="FIFO mode, output file will be created as FIFO file for continuous processing",
+    )
+
     # List all keys fingerprints in md5
     # # ssh-add -l -E md5
     # 2048 MD5:12:34:56:78:90:ab:cd:ef:01:23:34:56:78:90:12:34
@@ -160,17 +197,26 @@ def main() -> None:
             exit(1)
 
     if args.processor:
-        data_processor = PROCESSORS[args.processor](ssh_key, args.binary)
+        data_processor = PROCESSORS[args.processor]
 
     if args.type:
-        data_processor = PROCESSORS[args.type](ssh_key, args.binary)
+        data_processor = PROCESSORS[args.type]
 
-    Processor(
-        data_processor,
-        args.input,
-        args.output,
-        args.string,
-    ).run()
+    if args.fifomode:
+        ProcessorFifoMode(
+            lambda: data_processor(ssh_key, args.binary),
+            args.input,
+            args.output,
+            args.string,
+        ).run()
+    else:
+        Processor(
+            lambda: data_processor(ssh_key, args.binary),
+            args.input,
+            args.output,
+            args.string,
+
+        ).run()
 
 
 if __name__ == "__main__":

@@ -186,6 +186,28 @@ kubectl --kubeconfig <(echo "$CONFIG") $*
     }
 ```
 
+# FIFO mode
+
+In some applications, it is required that the decrypted file be accessible, for example in k9s, which executes kubectl with a parameter
+pointing to the configuration file. For this, the fifo mode is suitable, in which ssh_crypt will run in the background and decrypt the file
+as it is accessed, while the decrypted file will never touch the disk.
+
+```bash
+ENC_FILENAME="/home/user/.kube/kctl.enc"
+DEC_FILENAME="/home/user/.kube/kctl"
+
+# Remove FIFO file if it exists
+rm $DEC_FILENAME
+
+# To terminate the background process when the script exits
+trap 'kill $(jobs -p)' EXIT
+
+# Create a FIFO file to decrypt the file on the fly
+ssh-crypt -f -t jsonc -d -i $ENC_FILENAME -o $DEC_FILENAME > /dev/null 2>&1 &
+
+k9s --kubeconfig $DEC_FILENAME
+```
+
 # Using SSH-Agent Forwarding
 
 This module also allows you to use scripts with encrypted passwords on remote hosts by connecting to them via ssh.
@@ -286,6 +308,10 @@ Set type of input data, for instance it may replace encrypted passwords inside J
 Example:
 
     ssh-crypt -i test.json -t jsonc
+
+-f, --fifomode
+
+Enable FIFO mode, in which the program will decrypt the input data and send it to a special file when accessed
 
 
 # Bugs
