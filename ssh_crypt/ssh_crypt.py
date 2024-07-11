@@ -7,6 +7,7 @@ from typing import Optional
 from typing import Callable
 
 from paramiko import AgentKey
+from paramiko.ssh_exception import SSHException
 
 from .jsonc_tokenizer import Span, StringSpan, CommentSpan, Comment2Span, Tokenizer
 from .ciphers import Encryptor, Decryptor, ProcessorsAbc
@@ -35,6 +36,10 @@ class Processor:
         if output_file:
             self.output = open(output_file, "wb")
 
+    def finish(self):
+        self.output.flush()
+        self.output.close()
+
     def run(self) -> None:
         while True:
             data = self.input.read(4096)
@@ -48,8 +53,7 @@ class Processor:
             if len(data) < 4096:
                 break
         self.output.write(self.data_processor.send(b""))
-        self.output.flush()
-        self.output.close()
+        self.finish()
 
 
 class ProcessorFifoMode:
@@ -75,6 +79,10 @@ class ProcessorFifoMode:
                 processor.run()
             except BrokenPipeError:
                 pass
+            # in cases when ssh-agent is not available, or sign not confirmed
+            except SSHException as err:
+                processor.finish()
+
             finally:
                 os.unlink(self.output_file)
 
