@@ -1,5 +1,4 @@
 import os
-import binascii
 from typing import Union, Optional
 
 from paramiko import Agent
@@ -49,14 +48,12 @@ def get_first_key():
 
 def find_filter_key(ssh_filter):
     ssh_filter = ssh_filter.encode()
-    filter_keys = []
+
     for key in [key for key in get_keys() if key[0].name in VALID_SSH_NAME]:
         if ssh_filter in key[1]:
-            filter_keys.append(key)
-        elif ssh_filter in binascii.hexlify(key[0].get_fingerprint(), sep=":"):
-            filter_keys.append(key)
-    if filter_keys:
-        return filter_keys[0][0]
+            return key[0]
+        elif ssh_filter.replace(b':', b'') in key[0].get_fingerprint().hex().encode():
+            return key[0]
 
 
 def choose_ssh_key(

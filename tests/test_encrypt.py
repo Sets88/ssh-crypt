@@ -171,14 +171,14 @@ def test_decrypt_rsa(rsa_in_agent):
     with tempfile.NamedTemporaryFile() as file_obj_encryptor:
         with tempfile.NamedTemporaryFile("r") as file_obj_decryptor:
             encryptor = Processor(
-                data_processor=encryptor,
+                data_processor=lambda: encryptor,
                 string_data=random_data,
                 output_file=file_obj_encryptor.name,
                 input_file=None,
             )
             encryptor.run()
             decryptor = Processor(
-                data_processor=decryptor,
+                data_processor=lambda: decryptor,
                 string_data=None,
                 output_file=file_obj_decryptor.name,
                 input_file=file_obj_encryptor.name,
